@@ -1,71 +1,82 @@
 'use strict';
 
-const apiKey = "2355a5a299mshb7e9f3dcb67b44ep14c3dbjsnb360cbacbc28";
+// STARTED TRYING TO GET MY APP TO WORK WITH "NEWS SEARCH"
+// METHOD, BUT I COULDN'T GET IT TO WORK
+// define token for API authorization
+    //const headers = {
+    //    "Authorization" : `token c2ec92a314299935ea3c1c1d9fa8c838afed0f90`
+    //};
+// define url
+    //const url = "https://api.github.com/users/derek-arrotta/repos";
+    //const response = await fetch(url, {
+    //    "method": "GET",
+    //    "headers": headers
+    //});
+    //console.log(response);
 
-const searchURL = 'https://contextualwebsearch-websearch-v1.p.rapidapi.com/api/search/NewsSearchAPI';
 
+// define parts of API url
+let url1 = 'https://api.github.com/users/';
+let url2 = '/repos';
 
-function formatQueryParams(params) {
-  const queryItems = Object.keys(params)
-    .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
-  return queryItems.join('&');
+// get repo list array/object
+function getRepo(username) {
+    let url = url1 + username + url2;
+    return fetch(url)
+        .then(response => response.json())
+        .catch(error => alert('something went wrong'));
 }
 
-function displayResults(responseJson, maxResults) {
-  // if there are previous results, remove them
-  console.log(responseJson);
-  $('#results-list').empty();
-  // iterate through the articles array, stopping at the max number of results
-  for (let i = 0; i < responseJson.value.length & i<maxResults ; i++){
-    // for each video object in the articles
-    //array, add a list item to the results 
-    //list with the article title, source, author,
-    //description, and image
-    $('#results-list').append(
-      `<li><h3><a href="${responseJson.value[i].url}">${responseJson.value[i].title}</a></h3>
-      <p>${responseJson.value[i].description}</p>
-      <p>By ${responseJson.value[i].body}</p>
-      </li>`
-    )};
-  //display the results section  
-  $('#results').removeClass('hidden');
-};
-
-function getNews(query, maxResults=10) {
-  const params = {
-    q: query,
-    pageSize: maxResults
-  };
-  const queryString = formatQueryParams(params)
-  const url = searchURL + '?' + queryString;
-
-  console.log(url);
-
-  const options = {
-    headers: new Headers({
-      "x-rapidapi-key": apiKey})
+// take array/object response from above and append to results list
+function displayResults(responseJson) {
+    // if there are previous results, remove them
+    console.log(responseJson);
+    $('#results-list').empty();
+    // iterate through array, stopping at the max number of results
+    for (let i = 0; i < responseJson.length ; i++){
+      // append repo list (url, name, description, and date)
+      $('#results-list').append(
+        `<li><h3><a href="${responseJson[i].html_url}">${responseJson[i].name}</a></h3>
+        <p>${responseJson[i].description}</p>
+        <p>By ${responseJson[i].updated_at}</p>
+        </li>`
+      )};
+    //display the results section  
+    $('#results').removeClass('hidden');
   };
 
-  fetch(url, options)
-    .then(response => {
-      if (response.ok) {
-        return response.json();
-      }
-      throw new Error(response.statusText);
-    })
-    .then(responseJson => displayResults(responseJson, maxResults))
-    .catch(err => {
-      $('#js-error-message').text(`Something went wrong: ${err.message}`);
+  // display repo list
+  function watchForm() {
+    $('form').submit(event => {
+        // prevent default action of form submit (prevent from submitting form and just perform action below)
+        event.preventDefault();
+        // define username from form input
+        const username = $('#js-search-term').val();
+        // get repo list and display
+        getRepo(username)
+            .then(response => {
+                displayResults(response);
+        });
     });
 }
 
-function watchForm() {
-  $('form').submit(event => {
-    event.preventDefault();
-    const searchTerm = $('#js-search-term').val();
-    const maxResults = $('#js-max-results').val();
-    getNews(searchTerm, maxResults);
-  });
-}
+// run functions
+$(function() {
+    // when web page first loads, the function runs and this message runs
+    console.log('App loaded! Waiting for submit!');
+    // watch form will not run until submit is pressed. once watch form runs, all previous functions are triggered
+    watchForm();
+});
 
-$(watchForm);
+
+
+
+
+
+
+
+
+
+
+
+
